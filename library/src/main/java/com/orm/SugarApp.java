@@ -1,28 +1,12 @@
 package com.orm;
 
+import android.content.Context;
 import android.text.TextUtils;
 
-public abstract class SugarApp extends android.app.Application{
+public class SugarApp{
 
     private Database database;
     private static SugarApp sugarContext;
-
-    public void onCreate(){
-        super.onCreate();
-        SugarApp.sugarContext = this;
-        if (TextUtils.isEmpty(customDatabaseParentPath())){
-            this.database = new Database(this);
-        }else{
-            this.database = new Database(new DatabaseContext(this,customDatabaseParentPath()));
-        }
-    }
-
-    public void onTerminate(){
-        if (this.database != null) {
-            this.database.getDB().close();
-        }
-        super.onTerminate();
-    }
 
     public static SugarApp getSugarContext(){
         return sugarContext;
@@ -31,8 +15,36 @@ public abstract class SugarApp extends android.app.Application{
     protected Database getDatabase() {
         return database;
     }
+    
+    private SugarApp(){
+    	
+    }
 
-    public String customDatabaseParentPath(){
-        return null;
+    public static void init(Context context){
+        init(context,null);
+    }
+
+    /**
+     * Initializes Sugar ORM. It should be initialized in Application class.
+     * @param context applicatinContext
+     */
+    public static void init(Context context,String customDatabasePath){
+    	sugarContext = new SugarApp();
+
+        Context appContext = context.getApplicationContext();
+
+        if (!TextUtils.isEmpty(customDatabasePath)){
+            appContext = new DatabaseContext(context,customDatabasePath);
+        }
+
+    	sugarContext.database = new Database(appContext);
+    }
+    /**
+     * Closes sugar DB connection.
+     */
+    public static void closeDB(){
+    	if(sugarContext.database != null){
+    		sugarContext.database.getDB().close();
+    	}
     }
 }
