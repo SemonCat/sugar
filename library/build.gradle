@@ -7,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        versionCode Integer.valueOf(VERSION_CODE)
+        versionName String.valueOf(VERSION_NAME)
     }
     buildTypes {
         release {
@@ -20,5 +20,15 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.2.0'
+}
+
+task makeJar(type: Jar, dependsOn:build) {
+    delete fileTree (dir: "binary", include: "**/"+POM_ARTIFACT_ID+"*")
+    manifest {
+        attributes 'Bundle-Name': POM_ARTIFACT_ID,
+                'Bundle-Version': VERSION_NAME
+    }
+    baseName = POM_ARTIFACT_ID + '_' + VERSION_NAME
+    from zipTree("build/intermediates/bundles/release/classes.jar")
+    destinationDir = file('binary/')
 }
