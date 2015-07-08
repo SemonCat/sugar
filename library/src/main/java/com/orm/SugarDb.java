@@ -5,7 +5,13 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.orm.dsl.Column;
+import com.orm.dsl.NotNull;
+import com.orm.dsl.Unique;
+
 import dalvik.system.DexFile;
 
 import java.io.BufferedReader;
@@ -117,12 +123,43 @@ public class SugarDb extends SQLiteOpenHelper {
             String columnName = StringUtil.toSQLName(column.getName());
             String columnType = QueryBuilder.getColumnType(column.getType());
 
-            if (columnType != null) {
+            if (!TextUtils.isEmpty(columnType)) {
 
                 if (columnName.equalsIgnoreCase("Id")) {
                     continue;
                 }
-                sb.append(", ").append(columnName).append(" ").append(columnType);
+
+                if (column.isAnnotationPresent(Column.class)) {
+                    Column columnAnnotation = column.getAnnotation(Column.class);
+                    columnName = columnAnnotation.name();
+
+                    sb.append(", ").append(columnName).append(" ").append(columnType);
+
+                    if (columnAnnotation.notNull()) {
+                        if (columnType.endsWith(" NULL")) {
+                            sb.delete(sb.length() - 5, sb.length());
+                        }
+                        sb.append(" NOT NULL");
+                    }
+
+                    if (columnAnnotation.unique()) {
+                        sb.append(" UNIQUE");
+                    }
+
+                } else {
+                    sb.append(", ").append(columnName).append(" ").append(columnType);
+
+                    if (column.isAnnotationPresent(NotNull.class)) {
+                        if (columnType.endsWith(" NULL")) {
+                            sb.delete(sb.length() - 5, sb.length());
+                        }
+                        sb.append(" NOT NULL");
+                    }
+
+                    if (column.isAnnotationPresent(Unique.class)) {
+                        sb.append(" UNIQUE");
+                    }
+                }
             }
         }
         sb.append(" ) ");
