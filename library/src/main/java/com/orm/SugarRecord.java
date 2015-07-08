@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.text.TextUtils;
 import android.util.Log;
 import com.orm.dsl.Ignore;
+import com.orm.dsl.Table;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -382,6 +383,12 @@ public class SugarRecord<T>{
 
 
     public static String getTableName(Class<?> type) {
+        if (type.isAnnotationPresent(Table.class)){
+            Table annotation = type.getAnnotation(Table.class);
+            if (!TextUtils.isEmpty(annotation.name())){
+                return annotation.name();
+            }
+        }
         return StringUtil.toSQLName(type.getSimpleName());
     }
 
