@@ -209,20 +209,25 @@ public class SugarDb extends SQLiteOpenHelper {
         boolean isSuccess = false;
         try {
             List<String> files = Arrays.asList(this.context.getAssets().list("sugar_upgrades"));
-            Collections.sort(files, new NumberComparator());
 
-            for (String file : files){
-                Log.i("Sugar", "filename : " + file);
-                try {
-                    int version = Integer.valueOf(file.replace(".sql", ""));
+            if (files.size() > 0) {
+                Collections.sort(files, new NumberComparator());
 
-                    if ((version > oldVersion) && (version <= newVersion)) {
-                        executeScript(db, file);
-                        isSuccess = true;
+                for (String file : files) {
+                    Log.i("Sugar", "filename : " + file);
+                    try {
+                        int version = Integer.valueOf(file.replace(".sql", ""));
+
+                        if ((version > oldVersion) && (version <= newVersion)) {
+                            executeScript(db, file);
+                            isSuccess = true;
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.i("Sugar", "not a sugar script. ignored." + file);
                     }
-                } catch (NumberFormatException e) {
-                    Log.i("Sugar", "not a sugar script. ignored." + file);
                 }
+            } else {
+                return true;
             }
         } catch (IOException e) {
             Log.e("Sugar", e.getMessage());
