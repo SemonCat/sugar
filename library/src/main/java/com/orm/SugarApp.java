@@ -1,6 +1,8 @@
 package com.orm;
 
-public class SugarApp extends android.app.Application{
+import android.text.TextUtils;
+
+public abstract class SugarApp extends android.app.Application{
 
     private Database database;
     private static SugarApp sugarContext;
@@ -8,7 +10,11 @@ public class SugarApp extends android.app.Application{
     public void onCreate(){
         super.onCreate();
         SugarApp.sugarContext = this;
-        this.database = new Database(this);
+        if (TextUtils.isEmpty(customDatabaseParentPath())){
+            this.database = new Database(this);
+        }else{
+            this.database = new Database(new DatabaseContext(this,customDatabaseParentPath()));
+        }
     }
 
     public void onTerminate(){
@@ -24,5 +30,9 @@ public class SugarApp extends android.app.Application{
 
     protected Database getDatabase() {
         return database;
+    }
+
+    public String customDatabaseParentPath(){
+        return null;
     }
 }
